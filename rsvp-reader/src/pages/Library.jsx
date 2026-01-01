@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Upload, BookOpen, Trash2, Clock } from 'lucide-react';
-import { db, getAllBooks, addBook, deleteBook, addTokens } from '../lib/db';
+import { db, getAllBooks, addBook, deleteBook, addTokens, getProgress } from '../lib/db';
 
 export default function Library() {
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ export default function Library() {
       
       // Handle worker messages
       worker.onmessage = async (e) => {
-        const { type, tokens, page, total, error } = e.data;
+        const { type, tokens, page, total, totalWords, error } = e.data;
         
         if (type === 'progress') {
           setProgress(Math.round((page / total) * 100));
@@ -89,6 +89,9 @@ export default function Library() {
             const chunk = tokens.slice(i, i + CHUNK_SIZE);
             await addTokens(chunk);
           }
+          
+          // Update book with total word count
+          await db.books.update(bookId, { totalWords });
           
           setUploading(false);
           setProgress(0);
@@ -218,47 +221,76 @@ export default function Library() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {books.map((book) => (
-                <div
-                  key={book.id}
-                  className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-200 group"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
-                        {book.title}
-                      </h3>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {formatDate(book.uploadedAt)}
+              {books.map((book) => {
+                // Get progress for this book
+                const bookProgress = useLiveQuery(
+                  () => getProgress(book.id),
+                  [book.id]
+                );
+                
+                const progressPercent = bookProgress?.tokenIdx && book.totalWords
+                  ? Math.round((bookProgress.tokenIdx / book.totalWords) * 100)
+                  : 0;
+                
+                return (
+                  <div
+                    key={book.id}
+                    className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-200 group"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
+                          {book.title}
+                        </h3>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Clock className="w-4 h-4 mr-1" />
+                          {formatDate(book.uploadedAt)}
+                        </div>
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(book.id, book.title);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-50 rounded-lg"
+                        title="Delete book"
+                      >
+                        <Trash2 className="w-5 h-5 text-red-500" />
+                      </button>
                     </div>
+                    
+                    <div className="mb-4 flex items-center gap-2">
+                      <span className="inline-block px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded">
+                        {book.fileType.toUpperCase()}
+                      </span>
+                      {progressPercent > 0 && (
+                        <span className="text-xs text-gray-500">
+                          {progressPercent}% read
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    {progressPercent > 0 && (
+                      <div className="mb-4">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(book.id, book.title);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-50 rounded-lg"
-                      title="Delete book"
+                      onClick={() => navigate(`/reader/${book.id}`)}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                     >
-                      <Trash2 className="w-5 h-5 text-red-500" />
+                      {progressPercent > 0 ? 'Continue Reading' : 'Start Reading'}
                     </button>
                   </div>
-                  
-                  <div className="mb-4">
-                    <span className="inline-block px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded">
-                      {book.fileType.toUpperCase()}
-                    </span>
-                  </div>
-                  
-                  <button
-                    onClick={() => navigate(`/reader/${book.id}`)}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-                  >
-                    Start Reading
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
