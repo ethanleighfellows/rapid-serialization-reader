@@ -1,0 +1,9 @@
+dark mode
+sepia mode
+dynamic time to finish based on wpm
+skip times on actual buttons
+figure out why shit red
+different fonts
+clean section that has all of the differnt books -- pull from front end library. include progress bar pull from vite. 
+calculates remaining time per chapter and books
+ -- for chapter do regex + meta data processing

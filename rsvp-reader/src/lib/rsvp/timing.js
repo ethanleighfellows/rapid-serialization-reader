@@ -71,3 +71,61 @@ export function formatTime(ms) {
     return `${seconds}s`;
   }
 }
+
+/**
+ * Calculate remaining reading time from current position
+ */
+export function calculateRemainingTime(tokens, currentIdx, wpm) {
+  const remainingTokens = tokens.slice(currentIdx);
+  return estimateTotalTime(remainingTokens, wpm);
+}
+
+/**
+ * Detect chapter boundaries in tokens
+ * Looks for common chapter patterns like "Chapter 1", "CHAPTER ONE", etc.
+ */
+export function detectChapters(tokens) {
+  const chapters = [];
+  const chapterRegex = /^(chapter|ch\.|section|part)\s*[\d\w]+/i;
+  
+  tokens.forEach((token, idx) => {
+    // Check current and next few tokens for chapter markers
+    const context = tokens.slice(idx, idx + 5).map(t => t.word).join(' ');
+    
+    if (chapterRegex.test(context)) {
+      chapters.push({
+        startIdx: idx,
+        title: context.slice(0, 50), // First 50 chars as title
+        page: token.page,
+      });
+    }
+  });
+  
+  // Add word counts to each chapter
+  chapters.forEach((chapter, idx) => {
+    const nextChapter = chapters[idx + 1];
+    chapter.endIdx = nextChapter ? nextChapter.startIdx : tokens.length;
+    chapter.wordCount = chapter.endIdx - chapter.startIdx;
+  });
+  
+  return chapters;
+}
+
+/**
+ * Find which chapter a token index belongs to
+ */
+export function getCurrentChapter(tokens, currentIdx) {
+  const chapters = detectChapters(tokens);
+  
+  for (let i = chapters.length - 1; i >= 0; i--) {
+    if (currentIdx >= chapters[i].startIdx) {
+      return {
+        ...chapters[i],
+        number: i + 1,
+        total: chapters.length,
+      };
+    }
+  }
+  
+  return null;
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { splitWordAtORP } from '../lib/rsvp/orp';
 import { calculateWordDuration } from '../lib/rsvp/timing';
+import { THEMES } from '../lib/theme';
 
 export default function RSVPStage({ 
   tokens, 
@@ -8,12 +9,23 @@ export default function RSVPStage({
   wpm, 
   isPlaying, 
   onIdxChange,
-  fontSize = 48
+  fontSize = 48,
+  theme = 'light',
+  font = 'mono'
 }) {
   const timerRef = useRef(null);
   
   const currentToken = tokens[currentIdx] || { word: '' };
   const { before, pivot, after } = splitWordAtORP(currentToken.word);
+  
+  const themeColors = THEMES[theme];
+  
+  // Font mapping
+  const fontClass = {
+    mono: 'font-mono',
+    sans: 'font-sans',
+    serif: 'font-serif',
+  }[font] || 'font-mono';
   
   // Auto-advance to next word when playing
   useEffect(() => {
@@ -46,24 +58,24 @@ export default function RSVPStage({
     <div className="flex flex-col items-center justify-center h-full">
       {/* RSVP Display Area */}
       <div 
-        className="relative flex items-center justify-center min-h-[120px] min-w-[400px]"
+        className={`relative flex items-center justify-center min-h-[120px] min-w-[400px] ${fontClass}`}
         style={{ fontSize: `${fontSize}px` }}
       >
-        {/* Optional: Alignment guides (vertical lines) */}
+        {/* Alignment guide */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-px h-full bg-gray-300 opacity-30" />
+          <div className={`w-px h-full ${themeColors.border} opacity-30`} />
         </div>
         
         {/* Word Display with ORP alignment */}
-        <div className="relative font-mono flex items-center">
-          <span className="text-gray-900">{before}</span>
-          <span className="text-red-500 font-bold">{pivot}</span>
-          <span className="text-gray-900">{after}</span>
+        <div className={`relative flex items-center ${themeColors.text}`}>
+          <span>{before}</span>
+          <span className={`${themeColors.pivot} font-bold`}>{pivot}</span>
+          <span>{after}</span>
         </div>
       </div>
       
       {/* Progress indicator */}
-      <div className="mt-8 text-sm text-gray-500">
+      <div className={`mt-8 text-sm ${themeColors.textSecondary}`}>
         Word {currentIdx + 1} of {tokens.length}
       </div>
     </div>

@@ -1,4 +1,6 @@
 import { Play, Pause, SkipBack, SkipForward, Rewind, FastForward } from 'lucide-react';
+import { formatTime } from '../lib/rsvp/timing';
+import { THEMES } from '../lib/theme';
 
 export default function RSVPControls({
   isPlaying,
@@ -9,7 +11,11 @@ export default function RSVPControls({
   onJumpForward,
   onPreviousSentence,
   onNextSentence,
+  remainingTime = 0,
+  theme = 'light'
 }) {
+  const themeColors = THEMES[theme];
+  
   // WPM presets with labels
   const presets = [
     { wpm: 150, label: 'Study' },
@@ -19,15 +25,25 @@ export default function RSVPControls({
     { wpm: 450, label: 'Skim' },
   ];
   
+  // Calculate skip times (approximate words)
+  const skipWords = Math.round((5000 / 60000) * wpm); // ~5 seconds worth
+  
   return (
-    <div className="border-t border-gray-200 bg-white p-6">
+    <div className={`border-t ${themeColors.border} ${themeColors.cardBg} p-6`}>
       <div className="max-w-4xl mx-auto">
+        
+        {/* Time Remaining */}
+        {remainingTime > 0 && (
+          <div className={`text-center mb-4 ${themeColors.textSecondary} text-sm`}>
+            ⏱️ {formatTime(remainingTime)} remaining at {wpm} WPM
+          </div>
+        )}
         
         {/* Playback Controls */}
         <div className="flex items-center justify-center gap-4 mb-6">
           <button
             onClick={onPreviousSentence}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className={`p-2 hover:${themeColors.bg} rounded-lg transition-colors`}
             title="Previous sentence"
           >
             <SkipBack className="w-5 h-5" />
@@ -35,10 +51,11 @@ export default function RSVPControls({
           
           <button
             onClick={() => onJumpBack(5000)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Back 5 seconds"
+            className={`p-2 hover:${themeColors.bg} rounded-lg transition-colors flex flex-col items-center`}
+            title={`Back ~${skipWords} words`}
           >
             <Rewind className="w-5 h-5" />
+            <span className="text-xs mt-1">-5s</span>
           </button>
           
           <button
@@ -54,15 +71,16 @@ export default function RSVPControls({
           
           <button
             onClick={() => onJumpForward(5000)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Forward 5 seconds"
+            className={`p-2 hover:${themeColors.bg} rounded-lg transition-colors flex flex-col items-center`}
+            title={`Forward ~${skipWords} words`}
           >
             <FastForward className="w-5 h-5" />
+            <span className="text-xs mt-1">+5s</span>
           </button>
           
           <button
             onClick={onNextSentence}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className={`p-2 hover:${themeColors.bg} rounded-lg transition-colors`}
             title="Next sentence"
           >
             <SkipForward className="w-5 h-5" />
@@ -74,10 +92,10 @@ export default function RSVPControls({
           {/* Speed Slider */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={`text-sm font-medium ${themeColors.text}`}>
                 Speed: {wpm} WPM
               </label>
-              <span className="text-xs text-gray-500">
+              <span className={`text-xs ${themeColors.textSecondary}`}>
                 {wpm <= 200 && 'Study mode'}
                 {wpm > 200 && wpm <= 300 && 'Comfortable'}
                 {wpm > 300 && wpm <= 400 && 'Fast'}
@@ -106,7 +124,7 @@ export default function RSVPControls({
                   px-3 py-1 rounded text-sm font-medium transition-colors
                   ${wpm === preset.wpm 
                     ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : `${themeColors.bg} ${themeColors.text} hover:bg-blue-100`
                   }
                 `}
               >
