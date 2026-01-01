@@ -8,24 +8,12 @@ export type XfaLayerBuilderOptions = {
     linkService: IPDFLinkService;
     xfaHtml?: Object | undefined;
 };
-export type XfaLayerBuilderRenderOptions = {
-    viewport: PageViewport;
-    /**
-     * - The default value is "display".
-     */
-    intent?: string | undefined;
-};
 /**
  * @typedef {Object} XfaLayerBuilderOptions
  * @property {PDFPageProxy} pdfPage
  * @property {AnnotationStorage} [annotationStorage]
  * @property {IPDFLinkService} linkService
  * @property {Object} [xfaHtml]
- */
-/**
- * @typedef {Object} XfaLayerBuilderRenderOptions
- * @property {PageViewport} viewport
- * @property {string} [intent] - The default value is "display".
  */
 export class XfaLayerBuilder {
     /**
@@ -39,12 +27,13 @@ export class XfaLayerBuilder {
     div: HTMLDivElement | null;
     _cancelled: boolean;
     /**
-     * @param {XfaLayerBuilderRenderOptions} viewport
+     * @param {PageViewport} viewport
+     * @param {string} intent (default value is 'display')
      * @returns {Promise<Object | void>} A promise that is resolved when rendering
      *   of the XFA layer is complete. The first rendering will return an object
      *   with a `textDivs` property that can be used with the TextHighlighter.
      */
-    render({ viewport, intent }: XfaLayerBuilderRenderOptions): Promise<Object | void>;
+    render(viewport: PageViewport, intent?: string): Promise<Object | void>;
     cancel(): void;
     hide(): void;
 }

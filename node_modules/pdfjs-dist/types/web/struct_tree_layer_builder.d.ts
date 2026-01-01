@@ -1,22 +1,6 @@
-export type PDFPageProxy = import("../src/display/api").PDFPageProxy;
-export type StructTreeLayerBuilderOptions = {
-    pdfPage: PDFPageProxy;
-    rawDims: Object;
-};
-/**
- * @typedef {Object} StructTreeLayerBuilderOptions
- * @property {PDFPageProxy} pdfPage
- * @property {Object} rawDims
- */
 export class StructTreeLayerBuilder {
-    /**
-     * @param {StructTreeLayerBuilderOptions} options
-     */
     constructor(pdfPage: any, rawDims: any);
-    /**
-     * @returns {Promise<void>}
-     */
-    render(): Promise<void>;
+    render(): Promise<any>;
     getAriaAttributes(annotationId: any): Promise<any>;
     hide(): void;
     show(): void;

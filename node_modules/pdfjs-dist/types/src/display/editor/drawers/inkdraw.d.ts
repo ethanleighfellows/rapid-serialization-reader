@@ -6,9 +6,8 @@ export class InkDrawOutline extends Outline {
         };
         rotation: any;
         thickness: any;
-    }): any;
+    }): InkDrawOutline;
     build(lines: any, parentWidth: any, parentHeight: any, parentScale: any, rotation: any, thickness: any, innerMargin: any): void;
-    get thickness(): any;
     setLastElement(element: any): {
         path: {
             d: string;
