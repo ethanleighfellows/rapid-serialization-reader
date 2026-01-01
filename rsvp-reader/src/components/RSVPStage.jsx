@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { splitWordAtORP, calculateWordDuration } from '../lib/rsvp/timing';
+import { splitWordAtORP } from '../lib/rsvp/orp';
+import { calculateWordDuration } from '../lib/rsvp/timing';
 
 export default function RSVPStage({ 
   tokens, 
