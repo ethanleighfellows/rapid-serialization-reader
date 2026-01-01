@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Upload, BookOpen, Trash2, Clock } from 'lucide-react';
-import { db, getAllBooks, addBook, deleteBook, addTokens, getProgress } from '../lib/db';
+import { db, getAllBooks, addBook, deleteBook, addTokens } from '../lib/db';
 
 export default function Library() {
   const navigate = useNavigate();
   const books = useLiveQuery(() => getAllBooks(), []);
+  
+  // Fetch all progress entries once to avoid calling hooks inside a loop
+  const progressList = useLiveQuery(() => db.progress.toArray(), []);
+  const progressMap = progressList ? Object.fromEntries(progressList.map(p => [p.bookId, p])) : {};
   
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -222,11 +226,7 @@ export default function Library() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {books.map((book) => {
-                // Get progress for this book
-                const bookProgress = useLiveQuery(
-                  () => getProgress(book.id),
-                  [book.id]
-                );
+                const bookProgress = progressMap[book.id];
                 
                 const progressPercent = bookProgress?.tokenIdx && book.totalWords
                   ? Math.round((bookProgress.tokenIdx / book.totalWords) * 100)

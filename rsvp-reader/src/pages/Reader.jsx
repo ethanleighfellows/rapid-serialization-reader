@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Bookmark, Settings } from 'lucide-react';
+import { ArrowLeft, Bookmark, Settings, Sun, BookOpen, Moon } from 'lucide-react';
 import { getBook, getTokens, saveProgress, getProgress } from '../lib/db';
 import RSVPStage from '../components/RSVPStage';
 import RSVPControls from '../components/RSVPControls';
-import { calculateWordDuration } from '../lib/rsvp/timing';
+import { calculateWordDuration, formatTime, calculateRemainingTime, getCurrentChapter, estimateTotalTime } from '../lib/rsvp/timing';
+import { THEMES, getTheme, setTheme } from '../lib/theme';
 
 export default function Reader() {
   const { bookId } = useParams();
@@ -17,6 +18,15 @@ export default function Reader() {
   const [wpm, setWpm] = useState(300); // Default 300 WPM
   const [fontSize, setFontSize] = useState(48);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Theme state
+  const [theme, setThemeState] = useState(getTheme());
+  const themeColors = THEMES[theme];
+
+  const changeTheme = (t) => {
+    setTheme(t);
+    setThemeState(t);
+  };
   
   // Load book and tokens from IndexedDB
   const book = useLiveQuery(
@@ -192,6 +202,13 @@ export default function Reader() {
   const currentPage = tokens && currentIdx < tokens.length
     ? tokens[currentIdx].page
     : 1;
+
+  // Remaining times and chapter info
+  const remainingTime = tokens ? calculateRemainingTime(tokens, currentIdx, wpm) : 0;
+  const currentChapter = tokens ? getCurrentChapter(tokens, currentIdx) : null;
+  const chapterRemainingTime = (tokens && currentChapter)
+    ? estimateTotalTime(tokens.slice(currentIdx, currentChapter.endIdx), wpm)
+    : 0;
   
   // Loading state
   if (!book || !tokens) {
@@ -209,59 +226,124 @@ export default function Reader() {
     <div className="flex flex-col h-screen bg-gray-50">
       
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/library')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Back to library"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">
-                {book.title}
-              </h1>
-              <p className="text-sm text-gray-500">
-                {book.fileType.toUpperCase()} · Page {currentPage} · {progressPercent}% complete
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Settings"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-            
-            <button
-              onClick={() => {
-                // TODO: Implement bookmark functionality
-                alert('Bookmark saved!');
-              }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Add bookmark"
-            >
-              <Bookmark className="w-5 h-5" />
-            </button>
-          </div>
+<header className={`${themeColors.cardBg} border-b ${themeColors.border} px-6 py-4`}>
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-4">
+      <button
+        onClick={() => navigate('/library')}
+        className={`p-2 hover:bg-gray-100 rounded-lg transition-colors ${themeColors.text}`}
+        title="Back to library"
+      >
+        <ArrowLeft className="w-5 h-5" />
+      </button>
+      
+      <div>
+        <h1 className={`text-lg font-semibold ${themeColors.text}`}>
+          {book.title}
+        </h1>
+        <div className={`text-sm ${themeColors.textSecondary} flex items-center gap-3`}>
+          <span>{book.fileType.toUpperCase()}</span>
+          <span>·</span>
+          <span>Page {currentPage}</span>
+          <span>·</span>
+          <span>{progressPercent}% complete</span>
+          {currentChapter && (
+            <>
+              <span>·</span>
+              <span>Ch {currentChapter.number}/{currentChapter.total}</span>
+            </>
+          )}
         </div>
-        
-        {/* Progress Bar */}
-        <div className="mt-4">
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div
-              className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
+      </div>
+    </div>
+    
+    <div className="flex items-center gap-2">
+      {/* Theme Switcher - More visible */}
+      <div className={`flex items-center gap-1 mr-2 p-1 rounded-lg ${themeColors.border} border`}>
+        <button
+          onClick={() => changeTheme('light')}
+          className={`p-2 rounded-lg transition-colors ${
+            theme === 'light' 
+              ? 'bg-blue-500 text-white' 
+              : `${themeColors.text} hover:bg-gray-100`
+          }`}
+          title="Light theme"
+        >
+          <Sun className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => changeTheme('sepia')}
+          className={`p-2 rounded-lg transition-colors ${
+            theme === 'sepia' 
+              ? 'bg-amber-500 text-white' 
+              : `${themeColors.text} hover:bg-gray-100`
+          }`}
+          title="Sepia theme"
+        >
+          <BookOpen className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => changeTheme('dark')}
+          className={`p-2 rounded-lg transition-colors ${
+            theme === 'dark' 
+              ? 'bg-gray-700 text-white' 
+              : `${themeColors.text} hover:bg-gray-100`
+          }`}
+          title="Dark theme"
+        >
+          <Moon className="w-4 h-4" />
+        </button>
+      </div>
+      
+      <button
+        onClick={() => setShowSettings(!showSettings)}
+        className={`p-2 hover:bg-gray-100 rounded-lg transition-colors ${themeColors.text}`}
+        title="Settings"
+      >
+        <Settings className="w-5 h-5" />
+      </button>
+      
+      <button
+        onClick={() => alert('Bookmark saved!')}
+        className={`p-2 hover:bg-gray-100 rounded-lg transition-colors ${themeColors.text}`}
+        title="Add bookmark"
+      >
+        <Bookmark className="w-5 h-5" />
+      </button>
+    </div>
+  </div>
+  
+  {/* Progress Bar */}
+  <div className="mt-4">
+    <div className={`w-full bg-gray-300 rounded-full h-1.5`}>
+      <div
+        className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+        style={{ width: `${progressPercent}%` }}
+      />
+    </div>
+  </div>
+  
+  {/* Time Stats - More prominent */}
+  <div className={`mt-3 grid grid-cols-2 gap-4 text-sm ${themeColors.text}`}>
+    <div className="flex items-center gap-2">
+      <span className="text-lg">📖</span>
+      <div>
+        <div className="font-medium">Book Remaining</div>
+        <div className={themeColors.textSecondary}>{formatTime(remainingTime)}</div>
+      </div>
+    </div>
+    
+    {currentChapter && chapterRemainingTime > 0 && (
+      <div className="flex items-center gap-2">
+        <span className="text-lg">📑</span>
+        <div>
+          <div className="font-medium">Chapter Remaining</div>
+          <div className={themeColors.textSecondary}>{formatTime(chapterRemainingTime)}</div>
         </div>
-      </header>
+      </div>
+    )}
+  </div>
+</header>
       
       {/* Settings Panel (collapsible) */}
       {showSettings && (
@@ -299,6 +381,7 @@ export default function Reader() {
           isPlaying={isPlaying}
           onIdxChange={setCurrentIdx}
           fontSize={fontSize}
+          theme={theme}
         />
         
         {/* Context Panel (shown when paused) */}
@@ -323,6 +406,8 @@ export default function Reader() {
         onJumpForward={handleJumpForward}
         onPreviousSentence={handlePreviousSentence}
         onNextSentence={handleNextSentence}
+        remainingTime={remainingTime}
+        theme={theme}
       />
       
     </div>
