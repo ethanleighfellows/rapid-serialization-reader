@@ -2,13 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
   ],
-  base: '/rsvp-reader/', // ⚠️ CHANGE THIS to your GitHub repo name
+  // Use root path in dev, /rsvp-reader/ in production
+  base: process.env.NODE_ENV === 'production' ? '/rsvp-reader/' : '/',
   build: {
     outDir: 'dist',
     sourcemap: true,
@@ -17,6 +17,6 @@ export default defineConfig({
     format: 'es',
   },
   optimizeDeps: {
-    exclude: ['pdfjs-dist'], // Prevent Vite from pre-bundling PDF.js
+    exclude: ['pdfjs-dist'],
   },
 })
