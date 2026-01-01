@@ -20,22 +20,34 @@ export const THEMES = {
   },
   dark: {
     name: 'Dark',
-    bg: 'bg-gray-900',
-    cardBg: 'bg-gray-800',
-    text: 'text-gray-100',
-    textSecondary: 'text-gray-400',
-    border: 'border-gray-700',
-    pivot: 'text-cyan-400', // Cyan for dark mode
+    // Professional high-contrast dark palette (AAA-friendly)
+    bg: 'bg-[#070812]',        // near-black background
+    cardBg: 'bg-[#0b1220]',    // dark slate card background
+    text: 'text-white',        // pure white text for max contrast
+    textSecondary: 'text-gray-300',
+    border: 'border-[#1f2937]',
+    pivot: 'text-[#60a5fa]',   // subdued cyan accent
   },
 };
 
 export function getTheme() {
   const stored = localStorage.getItem('rsvp-theme');
-  return stored && THEMES[stored] ? stored : 'light';
+  const theme = stored && THEMES[stored] ? stored : 'light';
+
+  // Apply theme attribute to document for global styling
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+
+  return theme;
 }
 
 export function setTheme(themeName) {
   localStorage.setItem('rsvp-theme', themeName);
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', themeName);
+  }
 }
 
 export function getFont() {

@@ -13,3 +13,31 @@ body {
   width: 100%;
   height: 100vh;
 }
+
+/* Dark theme global adjustments for a sleek, high-contrast enterprise look */
+[data-theme='dark'] {
+  background-color: #070812;
+  color: #ffffff;
+}
+
+/* Ensure images and svgs inherit color and don't get inverted */
+[data-theme='dark'] img,
+[data-theme='dark'] svg {
+  filter: none;
+  color: inherit;
+}
+
+/* Soft hover for utilities that use hover:bg-gray-100 */
+[data-theme='dark'] .hover\:bg-gray-100:hover {
+  background-color: rgba(255,255,255,0.04) !important;
+}
+
+/* Make borders more visible on dark backgrounds where needed */
+[data-theme='dark'] .border-gray-200 {
+  border-color: #1f2937 !important;
+}
+
+/* Slightly desaturate any default gray-500 in dark mode for readability */
+[data-theme='dark'] .text-gray-500 {
+  color: #9CA3AF !important;
+}
