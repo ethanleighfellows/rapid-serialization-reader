@@ -7,11 +7,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  // Use root path in dev, /rsvp-reader/ in production
-  base: process.env.NODE_ENV === 'production' ? '/rsvp-reader/' : '/',
+  base: '/', // Remove /rsvp-reader/ for development
   build: {
     outDir: 'dist',
     sourcemap: true,
+  },
+  server: {
+    host: true, // Listen on all addresses for Codespaces
   },
   worker: {
     format: 'es',
