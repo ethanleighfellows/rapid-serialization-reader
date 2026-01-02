@@ -373,7 +373,7 @@ export default function Reader() {
       )}
       
       {/* Main RSVP Stage */}
-      <main className="flex-1 flex items-center justify-center relative">
+      <main className={`flex-1 flex items-center justify-center relative ${themeColors.bg} ${themeColors.text}`}>
         <RSVPStage
           tokens={tokens}
           currentIdx={currentIdx}
@@ -387,8 +387,8 @@ export default function Reader() {
         {/* Context Panel (shown when paused) */}
         {!isPlaying && (
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 max-w-2xl w-full px-4">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4">
-              <p className="text-sm text-gray-600 leading-relaxed">
+            <div className={`rounded-lg shadow-lg border ${themeColors.border} ${themeColors.cardBg} p-4`}>
+              <p className={`text-sm leading-relaxed ${themeColors.textSecondary}`}>
                 {getContextText()}
               </p>
             </div>

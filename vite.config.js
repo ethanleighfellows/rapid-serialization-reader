@@ -8,7 +8,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   root: 'rsvp-reader',
-  base: '/', // Remove /rsvp-reader/ for development when serving the nested app from workspace root
+  base: '/rapid-serialization-reader/', // Remove /rsvp-reader/ for development when serving the nested app from workspace root
   build: {
     outDir: 'dist',
     sourcemap: true,
